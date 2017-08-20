@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -44,7 +46,7 @@ func (c *Client) req(method, command string, val url.Values, obj interface{}) er
 	}
 	r, err := http.NewRequest(method, addr, nil)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed creating request")
 	}
 	if method == "POST" {
 		val.Add("nonce", strconv.Itoa(int(time.Now().UnixNano())))
@@ -58,7 +60,7 @@ func (c *Client) req(method, command string, val url.Values, obj interface{}) er
 	}
 	resp, err := c.httpClient.Do(r)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed %s request", method)
 	}
 	defer resp.Body.Close()
 	return json.NewDecoder(resp.Body).Decode(obj)
